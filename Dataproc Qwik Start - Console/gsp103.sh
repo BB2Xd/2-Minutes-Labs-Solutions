@@ -62,10 +62,17 @@ gcloud projects add-iam-policy-binding "$DEVSHELL_PROJECT_ID" \
 
 #----------------------------- Dataproc Setup -------------------------------#
 echo "${BOLD}${RED}Creating Dataproc Cluster...${RESET}"
+# Get subnet name in the current region (us-west4)
+export SUBNET_NAME=$(gcloud compute networks subnets list \
+  --filter="region=$REGION" \
+  --format="value(name)" | head -n 1)
+
+# Create Dataproc cluster with explicit subnet
 gcloud dataproc clusters create example-cluster \
     --enable-component-gateway \
     --region "$REGION" \
     --zone "$ZONE" \
+    --subnet "$SUBNET_NAME" \
     --master-machine-type e2-standard-2 \
     --master-boot-disk-size 30 \
     --num-workers 2 \
@@ -73,6 +80,7 @@ gcloud dataproc clusters create example-cluster \
     --worker-boot-disk-size 30 \
     --image-version 2.2-debian12 \
     --project "$DEVSHELL_PROJECT_ID"
+
 
 #----------------------------- Submit Spark Job -----------------------------#
 echo "${BOLD}${BLUE}Submitting Spark Job...${RESET}"
